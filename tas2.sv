@@ -24,7 +24,7 @@ reg [3:0]  d_num;
 reg [10:0] tot;
 reg [10:0] sum;
 reg [7:0]  divi;
-reg 	   divi_done;
+reg 	   div_done;
 
 reg [10:0] addr;
 reg [10:0] prev;
@@ -89,16 +89,27 @@ end
 always_comb begin
 	unique case( comp_ps )
 	  WAIT: begin
-
+	    d_cnt = 0;
+	    div_done = 0;
+	    tot = 0;
+	    if(done) comp_ns = COMP;
+	    else     comp_ns = WAIT;
 	  end
 	  COMP: begin
-
+	    if( data == 8'hA5 || data == 8'hC3 ) comp_ns = ADD;
+	    else				 comp_ns = WAIT;
 	  end
 	  ADD: begin
-
+	    if(done) begin
+	      tot = sum + data;
+	      d_cnt = d_num + 1;
+	    end
+	    if (d_cnt == 5) comp_ns = DIV;
 	  end
 	  DIV: begin
-
+	    divi = sum >> 2;
+	    div_done = 1;
+	    comp_ns = WAIT;
 	  end
 	endcase
 end
@@ -138,7 +149,7 @@ end
 //COMP state machine control
 always_ff @(posedge clk_50, negedge reset_n) begin
 	if(!reset_n) begin
-	  comp_ns <= WAIT;
+	  comp_ps <= WAIT;
 	end
 	else begin
 	  comp_ps <= comp_ns;
