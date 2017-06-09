@@ -17,6 +17,7 @@ reg [3:0]  count;
 reg [3:0]  num;
 reg	   done;
 reg [7:0]  shifted;
+reg [7:0]  data;
 
 reg [3:0]  d_cnt;
 reg [3:0]  d_num;
@@ -29,13 +30,13 @@ reg [10:0] addr;
 reg [10:0] prev;
 reg 	   sent;
 reg 	   send;
-reg [7:0]  data;
+reg [7:0]  send_data;
 
 
 
 
 //assign connections
-assign ram_data = data;
+assign ram_data = send_data;
 assign ram_wr_n = sent;
 assign ram_addr = addr;
 
