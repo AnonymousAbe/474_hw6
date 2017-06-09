@@ -12,17 +12,31 @@ module tas(
 
 
 //internal registers
-reg [7:0] S2P_reg;
-reg [3:0] count;
-reg [3:0] num;
+reg [7:0]  S2P_reg;
+reg [3:0]  count;
+reg [3:0]  num;
+reg	   done;
 
+reg [3:0]  d_cnt;
+reg [3:0]  d_num;
+reg [10:0] tot;
+reg [10:0] sum;
+reg [7:0]  divi;
+reg 	   divi_done;
 
+reg [10:0] addr;
+reg [10:0] prev;
+reg 	   sent;
+reg 	   send;
+reg [7:0]  data;
 
 
 
 
 //assign connections
-
+assign ram_data = data;
+assign ram_wr_n = sent;
+assign ram_addr = addr;
 
 
 //enum values for S2P State Machine
@@ -55,7 +69,37 @@ end
 
 
 
+//COMP next state logic
+always_comb begin
+	unique case( comp_ps )
+	  WAIT: begin
 
+	  end
+	  COMP: begin
+
+	  end
+	  ADD: begin
+
+	  end
+	  DIV: begin
+
+	  end
+	endcase
+end
+
+
+
+//RAM next state logic
+always_comb begin
+	unique case( ram_ps )
+	  RWAIT: begin
+
+	  end
+	  SEND: begin
+
+	  end
+	endcase
+end
 
 
 //S2P state machine control
@@ -77,7 +121,16 @@ end
 
 //COMP state machine control
 always_ff @(posedge clk_50, negedge reset_n) begin
-
+	if(!reset_n) begin
+	  comp_ns <= WAIT;
+	end
+	else begin
+	  comp_ps <= comp_ns;
+	  if(done) begin
+	    d_num <= d_cnt;
+	    sum <= tot;
+	  end
+	end
 end
 
 
@@ -85,7 +138,16 @@ end
 
 //RAM state machine control
 always_ff @(posedge clk_2, negedge reset_n) begin
-
+	if(!reset_n) begin
+	  ram_ns <= RWAIT;
+	end
+	else begin
+	  ram_ps <= ram_ns;
+	  if(send) begin
+	    prev <= addr;
+	    sent <= 1;
+	  end
+	end
 end
 
 
