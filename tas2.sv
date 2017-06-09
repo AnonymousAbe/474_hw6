@@ -120,10 +120,15 @@ end
 always_comb begin
 	unique case( ram_ps )
 	  RWAIT: begin
-
+	    if(div_done) send = 1;
+	    if(send) ram_ns = SEND;
+	    else     ram_ns = RWAIT;
+	    addr = prev - 1;
 	  end
 	  SEND: begin
-
+	    addr = prev - 1;
+	    send = 0;
+	    ram_ns = RWAIT;
 	  end
 	endcase
 end
@@ -166,13 +171,16 @@ end
 //RAM state machine control
 always_ff @(posedge clk_2, negedge reset_n) begin
 	if(!reset_n) begin
-	  ram_ns <= RWAIT;
+	  ram_ps <= RWAIT;
+	  prev <= 10'h0800;
 	end
 	else begin
 	  ram_ps <= ram_ns;
+	  sent <= 0;
 	  if(send) begin
 	    prev <= addr;
 	    sent <= 1;
+	    send_data <= divi;
 	  end
 	end
 end
