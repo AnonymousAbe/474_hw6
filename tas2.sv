@@ -16,6 +16,7 @@ reg [7:0]  S2P_reg;
 reg [3:0]  count;
 reg [3:0]  num;
 reg	   done;
+reg [7:0]  shifted;
 
 reg [3:0]  d_cnt;
 reg [3:0]  d_num;
@@ -50,18 +51,32 @@ enum reg {RWAIT, SEND} ram_ps, ram_ns;
 
 
 
+//save S2P_reg to data when done
+always_ff @( posedge done ) begin
+	data <= S2P_reg;
+end
+
+
 
 //S2P next state logic
 always_comb begin
 	unique case( s2p_ps )
 	  IDLE: begin
-
+	    done = 0;
+	    count = 1;
+	    S2P_reg = {serial_data, shifted[6:0]};
+	    if(data_ena) s2p_ns = PUSH;
+	    else	 s2p_ns = IDLE;
 	  end
 	  PUSH: begin
-
+	    count = num + 1;
+	    S2P_reg = {serial_data, shifted[6:0]};
+	    if(count == 8) s2p_ns = FIN;
 	  end
 	  FIN: begin
-
+	    done = 1;
+	    count = 0;
+	    s2p_ns = IDLE;
 	  end
 	endcase
 
@@ -111,7 +126,7 @@ always_ff @( posedge clk_50, negedge reset_n) begin
 	  s2p_ps <= s2p_ns;
 	  num <= count;
 	  if((s2p_ns == PUSH || s2p_ps == PUSH) && count != 8) begin
-	    S2P_reg <= S2P_reg >> 1;
+	    shifted <= S2P_reg >> 1;
 	  end
 	end
 end
